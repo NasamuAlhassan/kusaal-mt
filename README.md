@@ -1,6 +1,6 @@
 # Kusaal ↔ English Machine Translation
 
-**The first machine translation model for Kusaal** — a Gur language spoken by ~400,000 people in northern Ghana and parts of Burkina Faso, with no prior NLP tools.
+**A machine translation model for Kusaal** — a Gur language spoken by ~400,000 people in northern Ghana and parts of Burkina Faso, with no prior NLP tools.
 
 Built by a native Kusaal speaker from Bawku, Ghana. Fine-tuned on a parallel corpus assembled from scratch.
 
