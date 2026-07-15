@@ -2,20 +2,18 @@
 
 **An open-source machine translation model for Kusaal** — a Gur language spoken by ~400,000 people in northern Ghana and parts of Burkina Faso, with no prior NLP tools.
 
-Built by a native Kusaal speaker from Bawku, Ghana. Fine-tuned on a parallel corpus assembled from scratch, expanded through back-translation augmentation. Data sourced in collaboration with [GhanaNLP](https://ghananlp.org).
+Built by a native Kusaal speaker from Bawku, Ghana. Fine-tuned on a parallel corpus assembled from scratch and expanded through back-translation augmentation.
 
-🤗 **Model on HuggingFace:** [PrinceAlhassanNasamu/kusaal-nllb-600M](https://huggingface.co/PrinceAlhassanNasamu/kusaal-nllb-600M)
+🤗 **Model:** [PrinceAlhassanNasamu/kusaal-nllb-600M](https://huggingface.co/PrinceAlhassanNasamu/kusaal-nllb-600M)
 🚀 **Live demo:** [PrinceAlhassanNasamu/kusaal-mt](https://huggingface.co/spaces/PrinceAlhassanNasamu/kusaal-mt)
 
 ---
 
 ## Why This Exists
 
-Kusaal is not in Google Translate. It is not in Meta's NLLB-200 (which covers 200 languages). It has no speech recognizer, no text-to-speech system, no existing NLP dataset of any kind.
+Kusaal is not in Google Translate. It is not in Meta's NLLB-200 (which covers 200 languages). It has no speech recognizer, no text-to-speech system, and no existing NLP dataset of any kind.
 
 A Kusaal speaker navigating a hospital form, a legal document, or an agricultural advisory in northern Ghana has no open digital translation tool. This project is a step toward changing that.
-
-The corpus built here has been contributed to [GhanaNLP](https://ghananlp.org), adding Kusaal support to their **Khaya AI** translation platform — the first time Kusaal has appeared in any production NLP system.
 
 ---
 
@@ -42,16 +40,16 @@ Kusaal and Dagbani are both Oti-Volta (Gur) languages. Instead of initialising t
 
 ## Dataset
 
-Built from five sources, then expanded through back-translation augmentation:
+Built from multiple sources:
 
 | Source | Pairs | Domain |
 |---|---|---|
 | YouVersion (Bible KJV) | ~29,257 | Religious / formal |
-| GhanaNLP | 3,489 | Daily life, health, agriculture, greetings, numbers |
 | English-Kusaal Index | 3,504 | Index / vocabulary |
+| GhanaNLP | 3,489 | Daily life, health, agriculture, greetings, numbers |
 | Lexique Pro (Kusaal lexical database) | 2,775 | Dictionary |
 | Wikipedia | 1,136 | General |
-| Back-translation augmentation | ~6,407 | Mixed |
+| Back-translation augmentation | ~2,407 | Mixed |
 | **Total** | **~34,568** | |
 
 **Splits:** Train ~27,300 · Val ~5,187 · Test ~2,081
@@ -74,8 +72,6 @@ To grow the corpus beyond the initial human-verified pairs, a back-translation p
 2. Pair the synthetic English output with the original Kusaal source
 3. Filter by confidence and length ratio
 4. Mix synthetic pairs with the original human-verified data at a controlled ratio
-
-This pipeline added ~6,407 pairs, bringing the total corpus to **~34,568 pairs**.
 
 ---
 
@@ -100,8 +96,7 @@ tokenizer = AutoTokenizer.from_pretrained(MODEL_ID)
 model     = AutoModelForSeq2SeqLM.from_pretrained(MODEL_ID)
 model.eval()
 
-# Re-register language codes
-# (HuggingFace save_pretrained does not persist lang_code_to_id — we save it separately)
+# Re-register language codes (not saved by save_pretrained)
 lang_codes_path = hf_hub_download(repo_id=MODEL_ID, filename="kusaal_lang_codes.json")
 with open(lang_codes_path) as f:
     lang_codes = json.load(f)
@@ -170,10 +165,10 @@ python test_kusaal.py --model_dir path/to/kusaal-nllb-final
 
 ## Limitations
 
-- **Domain bias:** The majority of training data is Bible text. The model handles formal and religious Kusaal better than everyday conversational language.
+- **Domain bias:** ~77% of training data is Bible text. The model handles formal and religious Kusaal better than everyday conversational language.
 - **Synthetic data noise:** Back-translated pairs introduce noise — the model that generated them makes errors, and those errors appear in training. The filtering step mitigates but does not eliminate this.
 - **Tokenization:** NLLB's SentencePiece tokenizer was built without Kusaal data. Kusaal words are over-segmented into small fragments, limiting word-level pattern learning.
-- **Dataset size:** 34,568 pairs remains small for MT. High-resource language pairs use hundreds of millions. Generalisation to unseen vocabulary is limited.
+- **Dataset size:** 34,568 pairs remains modest for MT. High-resource language pairs use hundreds of millions. Generalisation to unseen vocabulary is limited.
 - **No formal native speaker evaluation:** BLEU measures n-gram overlap with reference translations. The only real quality test is assessment by fluent Kusaal speakers.
 
 ---
@@ -181,8 +176,6 @@ python test_kusaal.py --model_dir path/to/kusaal-nllb-final
 ## What's Next
 
 This translation model is step one of a larger planned project: a **trimodal Kusaal corpus** — parallel text in Kusaal and English, aligned Kusaal audio recordings, and structured linguistic annotations. The goal is to enable not just translation but speech recognition, text-to-speech, and language learning tools for Kusaal communities.
-
-The corpus has already been contributed to GhanaNLP, adding Kusaal to their Khaya AI platform. This is the first time Kusaal has appeared in any production translation system.
 
 If you work in African NLP, speak Kusaal, or want to contribute data — open an issue or reach out.
 
@@ -209,7 +202,7 @@ If you work in African NLP, speak Kusaal, or want to contribute data — open an
 ```bibtex
 @misc{alhassan2026kusaal,
   author    = {Alhassan, Prince Nasamu},
-  title     = {Kusaal-English Machine Translation: First NLP Model for Kusaal},
+  title     = {Kusaal-English Machine Translation: First Open-Source NLP Model for Kusaal},
   year      = {2026},
   publisher = {GitHub},
   url       = {https://github.com/NasamuAlhassan/kusaal-mt}
