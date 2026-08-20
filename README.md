@@ -6,6 +6,8 @@ Built by a native Kusaal speaker from Bawku, Ghana. Fine-tuned on a parallel cor
 
 [**Model on Hugging Face**](https://huggingface.co/PrinceAlhassanNasamu/kusaal-nllb-600M) | [**Live demo**](https://huggingface.co/spaces/PrinceAlhassanNasamu/kusaal-mt)
 
+**In this repo:** the [13,659-pair Kusaal Wikipedia parallel corpus](corpus/) (CC BY-SA), the [mining pipeline scripts](scripts/), and the [full pipeline report](docs/WIKI_CORPUS_PIPELINE_REPORT.md).
+
 ---
 
 ## August 2026 update: Wikipedia fine-tune
