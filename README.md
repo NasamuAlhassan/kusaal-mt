@@ -1,17 +1,60 @@
 # Kusaal ↔ English Machine Translation
 
-**An open-source machine translation model for Kusaal** — a Gur language spoken by ~400,000 people in northern Ghana and parts of Burkina Faso, with no prior NLP tools.
+**An open-source machine translation model for Kusaal** — a Gur language spoken by ~400,000 people in northern Ghana and parts of Burkina Faso.
 
-Built by a native Kusaal speaker from Bawku, Ghana. Fine-tuned on a parallel corpus assembled from scratch and expanded through back-translation augmentation.
+Built by a native Kusaal speaker from Bawku, Ghana. Fine-tuned on a parallel corpus assembled from scratch, expanded through back-translation augmentation, and — as of August 2026 — a sentence-aligned corpus mined from Kusaal Wikipedia.
 
-🤗 **Model:** [PrinceAlhassanNasamu/kusaal-nllb-600M](https://huggingface.co/PrinceAlhassanNasamu/kusaal-nllb-600M)
-🚀 **Live demo:** [PrinceAlhassanNasamu/kusaal-mt](https://huggingface.co/spaces/PrinceAlhassanNasamu/kusaal-mt)
+[**Model on Hugging Face**](https://huggingface.co/PrinceAlhassanNasamu/kusaal-nllb-600M) | [**Live demo**](https://huggingface.co/spaces/PrinceAlhassanNasamu/kusaal-mt)
+
+---
+
+## August 2026 update: Wikipedia fine-tune
+
+The model was continued-trained on **13,659 new human-parallel sentence pairs**
+mined from Kusaal Wikipedia and its English counterparts (1,170 comparable
+article pairs, aligned by a shared-anchor + model-verification pipeline and
+partially human-adjudicated), plus a 6,917-sentence back-translation pool
+(real Kusaal, synthetic English, eng→kus direction only), mixed with the
+original corpus as replay.
+
+**Results** (beam 4, 1,000 sentences per test set per direction, sacreBLEU /
+chrF++ word_order=2):
+
+| Test set | Direction | BLEU before → after | chrF++ before → after |
+|---|---|---|---|
+| Wikipedia benchmark (new) | kus → eng | 42.17 → **47.73** | 59.92 → **64.09** |
+| Wikipedia benchmark (new) | eng → kus | 19.43 → **32.26** | 43.58 → **54.09** |
+| Original test set | kus → eng | 31.12 → 30.59 | 49.78 → 50.11 |
+| Original test set | eng → kus | 19.96 → 20.21 | 42.32 → 42.96 |
+
+The largest gain — **+12.8 BLEU for eng→kus on encyclopedic text** — comes
+from the back-translation pool targeting the model's weaker direction.
+Performance on the original (largely religious-register) test set is
+unchanged: no catastrophic forgetting.
+
+Qualitative fixes confirmed by a before/after probe set: Kusaal spelled-out
+numerals now render as digits instead of KJV-style English ("one thousand
+eight hundred seventy-four"), dates are exact, `Kristo biig` translates as
+"a Christian" rather than the calque "son of Christ", and election
+vocabulary no longer drifts into sports commentary.
+
+**Evaluation notes (read before comparing numbers):**
+- The original card reported BLEU 27.57 / 13.72 under a different decoding
+  setup and the full 2,081-sentence test; the table above uses one uniform
+  harness for before/after, so only within-table comparisons are valid.
+- The Wikipedia benchmark was mined with MT assistance, which biases it
+  toward sentences MT handles well; absolute scores on it read high. The
+  before→after deltas are the meaningful signal.
+
+**Remaining known weakness:** the Kusaal pronoun `o` is gender-neutral, and
+the model still defaults to "he" even when context (e.g. `kul sid`, "married
+a husband") indicates a female referent.
 
 ---
 
 ## Why This Exists
 
-Kusaal is not in Google Translate. It is not in Meta's NLLB-200 (which covers 200 languages). It has no speech recognizer, no text-to-speech system, and no existing NLP dataset of any kind.
+Kusaal is not in Google Translate. It is not in Meta's NLLB-200 (which covers 200 languages). It has no speech recognizer, no text-to-speech system, and very limited NLP resources.
 
 A Kusaal speaker navigating a hospital form, a legal document, or an agricultural advisory in northern Ghana has no open digital translation tool. This project is a step toward changing that.
 
@@ -19,18 +62,17 @@ A Kusaal speaker navigating a hospital form, a legal document, or an agricultura
 
 ## Model
 
-Fine-tuned from `facebook/nllb-200-distilled-600M` on a parallel corpus built from scratch and expanded via back-translation augmentation.
+Fine-tuned from `facebook/nllb-200-distilled-600M`.
 
 | | |
 |---|---|
 | **Base model** | facebook/nllb-200-distilled-600M |
 | **New language** | `kus_Latn` (Kusaal, Latin script) |
 | **Embedding seed** | `dag_Latn` (Dagbani — closest Gur relative in NLLB) |
-| **Training pairs** | 34,568 (bidirectional: 69,136 examples) |
+| **Training pairs** | ~48,200 human-parallel (bidirectional) + 6,917 back-translation |
 | **Directions** | kus → eng and eng → kus in one model |
-| **BLEU (kus → eng)** | 27.57 |
-| **BLEU (eng → kus)** | 13.72 |
-| **HuggingFace** | [PrinceAlhassanNasamu/kusaal-nllb-600M](https://huggingface.co/PrinceAlhassanNasamu/kusaal-nllb-600M) |
+| **BLEU (kus → eng)** | 47.73 wiki / 30.59 original domain |
+| **BLEU (eng → kus)** | 32.26 wiki / 20.21 original domain |
 
 ### Why Dagbani as the seed?
 
@@ -45,33 +87,30 @@ Built from multiple sources:
 | Source | Pairs | Domain |
 |---|---|---|
 | YouVersion (Bible KJV) | ~29,257 | Religious / formal |
+| **Kusaal Wikipedia harvest (Aug 2026)** | **13,659** | **Encyclopedic: politics, biography, geography, agriculture, science** |
 | English-Kusaal Index | 3,504 | Index / vocabulary |
 | GhanaNLP | 3,489 | Daily life, health, agriculture, greetings, numbers |
 | Lexique Pro (Kusaal lexical database) | 2,775 | Dictionary |
-| Wikipedia | 1,136 | General |
-| Back-translation augmentation | ~2,407 | Mixed |
-| **Total** | **~34,568** | |
+| Wikipedia (original subset) | 1,136 | General |
+| Back-translation augmentation | ~9,300 | Mixed |
+| **Total** | **~63,100** | |
 
-**Splits:** Train ~27,300 · Val ~5,187 · Test ~2,081
+The Wikipedia harvest was aligned by a three-stage pipeline: anchor matching
+(shared numbers, names, and loanwords), machine-translation verification
+(embedding cosine + chrF++ against candidate sentences), and human/LLM
+adjudication of borderline pairs. It is deduplicated against all prior
+training data, and a frozen 1,000-pair benchmark plus 500-pair validation
+split were held out before training.
 
 ### Data pipeline
 
 The raw data had two problems that would have silently hurt training:
 
-1. **HTML pollution** — the YouVersion scraper stored `class="verse v2" > 2 In those days...` instead of clean text in thousands of Bible pairs. Fixed by stripping the HTML pattern and re-sourcing clean text from the KJV JSON.
+1. **HTML pollution** — the YouVersion scraper stored `class="verse v2" > 2 In those days...` instead of clean text in thousands of Bible pairs. Fixed by stripping the HTML pattern and re-sourcing clean text.
 
 2. **CSV quoting corruption** — rows were silently dropped by pandas due to unescaped apostrophes in Bible text. Fixed by re-saving all files with `QUOTE_ALL`.
 
-After cleaning: deduplication on Kusaal+English pairs, length ratio filter (max 6×), UTF-8 without BOM throughout.
-
-### Back-translation augmentation
-
-To grow the corpus beyond the initial human-verified pairs, a back-translation pipeline was run on Lightning AI:
-
-1. Translate monolingual Kusaal text → English using the best checkpoint at the time
-2. Pair the synthetic English output with the original Kusaal source
-3. Filter by confidence and length ratio
-4. Mix synthetic pairs with the original human-verified data at a controlled ratio
+After cleaning: deduplication on Kusaal+English pairs, length ratio filter (max 6×), UTF-8 throughout, and apostrophe normalization (all variants folded to straight `'` U+0027 — Wikipedia text arrives with the saltillo `ꞌ` U+A78C, which the tokenizer has never seen).
 
 ---
 
@@ -93,7 +132,7 @@ from huggingface_hub import hf_hub_download
 MODEL_ID = "PrinceAlhassanNasamu/kusaal-nllb-600M"
 
 tokenizer = AutoTokenizer.from_pretrained(MODEL_ID)
-model     = AutoModelForSeq2SeqLM.from_pretrained(MODEL_ID)
+model = AutoModelForSeq2SeqLM.from_pretrained(MODEL_ID)
 model.eval()
 
 # Re-register language codes (not saved by save_pretrained)
@@ -122,29 +161,13 @@ def translate(text, direction="kus-eng"):
             attention_mask=torch.ones_like(ids),
             forced_bos_token_id=tgt_id,
             decoder_start_token_id=EOS,
-            max_new_tokens=64,
+            max_new_tokens=128,
             num_beams=4,
-            repetition_penalty=3.5,
-            no_repeat_ngram_size=4,
-            early_stopping=True,
-            length_penalty=0.6,
         )
-    result = tokenizer.decode(out[0], skip_special_tokens=True).strip()
-    parts = re.split(r'(?<=[.?!])\s+', result)
-    return parts[0].strip() if parts else result
+    return tokenizer.decode(out[0], skip_special_tokens=True).strip()
 
 print(translate("Laafi bɛ?", "kus-eng"))       # -> "Are you all right?"
 print(translate("How are you?", "eng-kus"))     # -> Kusaal output
-```
-
-### Local interactive script
-
-Clone the repo and run:
-
-```bash
-git clone https://github.com/NasamuAlhassan/kusaal-mt.git
-cd kusaal-mt
-python test_kusaal.py --model_dir path/to/kusaal-nllb-final
 ```
 
 ---
@@ -156,44 +179,43 @@ python test_kusaal.py --model_dir path/to/kusaal-nllb-final
 | `model.safetensors` | Trained model weights (~2.4 GB) |
 | `tokenizer.json` | Tokenizer vocabulary with `kus_Latn` added |
 | `kusaal_lang_codes.json` | Language → token ID map (required at inference) |
-| `generation_config.json` | Default generation settings (num_beams=4, max_new_tokens=256) |
+| `generation_config.json` | Default generation settings |
 | `config.json` | Model architecture config |
 
-> **Note on `kusaal_lang_codes.json`:** NLLB uses integer token IDs to identify languages at inference time via `forced_bos_token_id`. HuggingFace's `save_pretrained()` saves the token string in `added_tokens.json` but does not persist the `lang_code_to_id` dictionary. This file ensures any loader can correctly configure the model without guessing.
+> **Note on `kusaal_lang_codes.json`:** HuggingFace's `save_pretrained()` does not persist the `lang_code_to_id` dictionary. This file must be loaded at inference time to correctly set `forced_bos_token_id`.
 
 ---
 
 ## Limitations
 
-- **Domain bias:** ~77% of training data is Bible text. The model handles formal and religious Kusaal better than everyday conversational language.
-- **Synthetic data noise:** Back-translated pairs introduce noise — the model that generated them makes errors, and those errors appear in training. The filtering step mitigates but does not eliminate this.
+- **Register coverage:** the majority of training data remains formal (Bible) text, now balanced by ~14K encyclopedic pairs. Everyday conversational Kusaal is still the weakest register.
+- **Gender pronouns:** Kusaal `o` is gender-neutral; the model defaults to "he" and misses contextual cues for female referents.
+- **Synthetic data noise:** back-translated pairs introduce noise — the model that generated them makes errors, and those errors appear in training. Filtering mitigates but does not eliminate this.
 - **Tokenization:** NLLB's SentencePiece tokenizer was built without Kusaal data. Kusaal words are over-segmented into small fragments, limiting word-level pattern learning.
-- **Dataset size:** 34,568 pairs remains modest for MT. High-resource language pairs use hundreds of millions. Generalisation to unseen vocabulary is limited.
-- **No formal native speaker evaluation:** BLEU measures n-gram overlap with reference translations. The only real quality test is assessment by fluent Kusaal speakers.
+- **No formal native speaker evaluation:** BLEU/chrF++ measure n-gram overlap with reference translations. The only real quality test is assessment by fluent Kusaal speakers.
 
 ---
 
 ## What's Next
 
-This translation model is step one of a larger planned project: a **trimodal Kusaal corpus** — parallel text in Kusaal and English, aligned Kusaal audio recordings, and structured linguistic annotations. The goal is to enable not just translation but speech recognition, text-to-speech, and language learning tools for Kusaal communities.
+This model is a step toward a larger planned project: a **trimodal Kusaal corpus** — parallel text, aligned Kusaal audio recordings, and structured linguistic annotations. The goal is to enable speech recognition, text-to-speech, and language learning tools for Kusaal communities.
 
 If you work in African NLP, speak Kusaal, or want to contribute data — open an issue or reach out.
 
 ---
 
-## Training Details
+## Technical Details
 
-| Parameter | Value |
+| Parameter | Value (Aug 2026 fine-tune) |
 |---|---|
-| Max steps | 6,000 |
+| Steps | 4,000 (continued from the June 2026 checkpoint) |
 | Effective batch size | 32 (4 × 8 grad accumulation) |
-| Learning rate | 5e-5 |
-| Warmup steps | 600 |
-| Max sequence length | 128 tokens |
-| Evaluation metric | SacreBLEU |
-| Best checkpoint selection | BLEU (not loss) |
+| Learning rate | 3e-5, linear decay, 250 warmup steps |
+| Max sequence length | 192 tokens |
+| Optimizer | Adafactor |
+| Checkpoint selection | validation loss on held-out wiki pairs |
 | Precision | FP16 |
-| Hardware | Google Colab T4 GPU; Lightning AI (back-translation pipeline) |
+| Hardware | Kaggle T4 GPU (single) |
 
 ---
 
@@ -204,8 +226,8 @@ If you work in African NLP, speak Kusaal, or want to contribute data — open an
   author    = {Alhassan, Prince Nasamu},
   title     = {Kusaal-English Machine Translation: First Open-Source NLP Model for Kusaal},
   year      = {2026},
-  publisher = {GitHub},
-  url       = {https://github.com/NasamuAlhassan/kusaal-mt}
+  publisher = {HuggingFace},
+  url       = {https://huggingface.co/PrinceAlhassanNasamu/kusaal-nllb-600M}
 }
 ```
 
