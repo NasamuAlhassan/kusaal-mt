@@ -75,6 +75,7 @@ Fine-tuned from `facebook/nllb-200-distilled-600M`.
 | **Embedding seed** | `dag_Latn` (Dagbani — closest Gur relative in NLLB) |
 | **Training data** | ~45,800 human-parallel + ~9,300 back-translation pairs¹ |
 | **Directions** | kus → eng and eng → kus in one model |
+| **Overall BLEU** | **39.2 (kus → eng) · 26.2 (eng → kus)** — average of the two benchmarks below |
 | **BLEU (kus → eng)** | 47.73 wiki / 30.59 original domain |
 | **BLEU (eng → kus)** | 32.26 wiki / 20.21 original domain |
 
