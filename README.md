@@ -6,7 +6,9 @@ Built by a native Kusaal speaker from Bawku, Ghana. Fine-tuned on a parallel cor
 
 [**Model on Hugging Face**](https://huggingface.co/PrinceAlhassanNasamu/kusaal-nllb-600M) | [**Live demo**](https://huggingface.co/spaces/PrinceAlhassanNasamu/kusaal-mt)
 
-**In this repo:** the [13,659-pair Kusaal Wikipedia parallel corpus](corpus/) (CC BY-SA), the [mining pipeline scripts](scripts/), and the [full pipeline report](docs/WIKI_CORPUS_PIPELINE_REPORT.md).
+**In this repo:** the [13,659-pair Kusaal Wikipedia parallel corpus](corpus/) (CC BY-SA 4.0), the [mining pipeline scripts](scripts/), and the [full pipeline report](docs/WIKI_CORPUS_PIPELINE_REPORT.md).
+
+**Licensing:** code and documentation in this repository are CC BY 4.0 (root LICENSE); the corpus/ directory is **CC BY-SA 4.0** (see corpus/LICENSE), inheriting the ShareAlike terms of its Wikipedia source text.
 
 ---
 
@@ -71,7 +73,7 @@ Fine-tuned from `facebook/nllb-200-distilled-600M`.
 | **Base model** | facebook/nllb-200-distilled-600M |
 | **New language** | `kus_Latn` (Kusaal, Latin script) |
 | **Embedding seed** | `dag_Latn` (Dagbani — closest Gur relative in NLLB) |
-| **Training pairs** | ~48,200 human-parallel (bidirectional) + 6,917 back-translation |
+| **Training data** | ~45,800 human-parallel + ~9,300 back-translation pairs¹ |
 | **Directions** | kus → eng and eng → kus in one model |
 | **BLEU (kus → eng)** | 47.73 wiki / 30.59 original domain |
 | **BLEU (eng → kus)** | 32.26 wiki / 20.21 original domain |
@@ -95,7 +97,16 @@ Built from multiple sources:
 | Lexique Pro (Kusaal lexical database) | 2,775 | Dictionary |
 | Wikipedia (original subset) | 1,136 | General |
 | Back-translation augmentation | ~9,300 | Mixed |
-| **Total** | **~63,100** | |
+| **Total (as collected)** | **~63,100** | |
+
+¹ **One accounting, stated once:** source rows above are as-collected and
+overlap; after deduplication and filtering, the six original sources yield
+the 34,568-pair June 2026 corpus (~32,200 human-parallel + ~2,400
+back-translation). Adding the Wikipedia harvest (13,659 pairs) and its
+back-translation pool (6,917) gives **~45,800 human-parallel + ~9,300
+back-translation pairs**; 1,500 wiki pairs (1,000 benchmark + 500
+validation) are excluded from training, leaving ~53,600 pairs actually
+trained on.
 
 The Wikipedia harvest was aligned by a three-stage pipeline: anchor matching
 (shared numbers, names, and loanwords), machine-translation verification
@@ -125,6 +136,13 @@ pip install transformers torch sentencepiece
 ```
 
 ### Quick inference
+
+> ⚠️ **Do not use plain `tokenizer.src_lang = "kus_Latn"`.** Tested on
+> transformers 5.x: it does not raise an error — it silently falls back to
+> the `eng_Latn` prefix, because added language codes are not registered in
+> the NLLB tokenizer's language list. Your Kusaal input gets encoded as if
+> it were English and translations quietly degrade. Use the snippet below,
+> which sets the language prefix explicitly.
 
 ```python
 import json, re, torch
@@ -226,7 +244,7 @@ If you work in African NLP, speak Kusaal, or want to contribute data — open an
 ```bibtex
 @misc{alhassan2026kusaal,
   author    = {Alhassan, Prince Nasamu},
-  title     = {Kusaal-English Machine Translation: First Open-Source NLP Model for Kusaal},
+  title     = {Kusaal-English Machine Translation: An Open Model and Corpus},
   year      = {2026},
   publisher = {HuggingFace},
   url       = {https://huggingface.co/PrinceAlhassanNasamu/kusaal-nllb-600M}

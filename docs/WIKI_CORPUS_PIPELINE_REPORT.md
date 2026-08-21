@@ -354,12 +354,26 @@ agriculture, science, culture).
 
 ---
 
-## 9. Agreed next step (not yet started)
+## 9. Fine-tuning — executed August 19–20, 2026
 
-**Fine-tuning recipe** for the next tekyerema round:
-- gold + silver as genuine bidirectional pairs;
-- BT pool tagged for **eng→kus direction only** (real Kusaal targets);
-- hold out ~1,000 gold pairs as a **wiki-domain test set** — the first proper
-  measurement of encyclopedic-register performance for Kusaal MT;
-- dedup is already guaranteed by construction (§5);
-- watch for: gender-pronoun corrections, number-word handling, calque fixes.
+The recipe planned here was carried out on both models. The 1,000-pair gold
+holdout became the frozen **Kusaal Wikipedia Benchmark** (seed 42, plus a
+500-pair validation split), and training used gold + silver bidirectionally
+with the BT pool tagged eng→kus only.
+
+**Main model (`kusaal-nllb-600M`), 1,000 sentences per test per direction:**
+
+| Test / direction | BLEU | chrF++ |
+|---|---|---|
+| wiki kus→eng | 42.17 → **47.73** | 59.92 → **64.09** |
+| wiki eng→kus | 19.43 → **32.26** | 43.58 → **54.09** |
+| original test, both directions | ~flat | ~flat (no forgetting) |
+
+Probe outcomes: spelled-out numerals→digits fixed, dates exact, *Kristo
+biig*→"a Christian" fixed, election-vocabulary drift fixed; the
+gender-neutral pronoun *o* still defaults to "he". Tekyerema received the
+same treatment and improved on its own everyday holdout (chrF++ 32.15→35.99
+kus→eng, 26.92→32.02 eng→kus). Full tables: `finetune_results/` and the
+updated model cards on Hugging Face. Both fine-tuned models are published;
+the corpus and this pipeline are released at
+github.com/NasamuAlhassan/kusaal-mt.

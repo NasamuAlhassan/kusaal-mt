@@ -1,0 +1,21 @@
+Creative Commons Attribution-ShareAlike 4.0 International (CC BY-SA 4.0)
+
+The contents of this corpus/ directory — the Kusaal-English Wikipedia
+Parallel Corpus — are licensed under CC BY-SA 4.0, NOT under the CC BY 4.0
+license that covers the rest of this repository.
+
+This is required, not optional: the sentences are derived from the Kusaal
+Wikipedia (kus.wikipedia.org) and the English Wikipedia (en.wikipedia.org),
+whose text is published under CC BY-SA 4.0. The ShareAlike condition
+carries through to this derivative, so any redistribution or further
+derivative of this corpus must also be licensed under CC BY-SA 4.0 (or a
+compatible license).
+
+Attribution:
+- Text: the contributor communities of the Kusaal Wikipedia and the English
+  Wikipedia.
+- Sentence alignment and corpus compilation: Prince Nasamu Alhassan, 2026.
+  Suggested citation is in the repository root README.
+
+Full license text: https://creativecommons.org/licenses/by-sa/4.0/legalcode
+Human-readable summary: https://creativecommons.org/licenses/by-sa/4.0/

@@ -4,8 +4,8 @@ Kusaal-English Wikipedia Parallel Corpus, v1 (August 2026)
 Compiled by Prince Nasamu Alhassan (pnalhassan@gmail.com)
 
 13,659 sentence pairs mined from 1,135 Kusaal Wikipedia articles and their
-English Wikipedia counterparts. To my knowledge, the first sizable parallel
-Kusaal corpus outside the religious register (politics, biography, geography,
+English Wikipedia counterparts. The largest openly released parallel Kusaal
+corpus outside the religious register (politics, biography, geography,
 agriculture, science, culture).
 
 FILE: kusaal_wiki_parallel_corpus.csv (UTF-8; opens directly in Excel)
