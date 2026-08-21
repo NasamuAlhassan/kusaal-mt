@@ -4,7 +4,7 @@
 
 Built by a native Kusaal speaker from Bawku, Ghana. Fine-tuned on a parallel corpus assembled from scratch, expanded through back-translation augmentation, and — as of August 2026 — a sentence-aligned corpus mined from Kusaal Wikipedia.
 
-[**Model on Hugging Face**](https://huggingface.co/PrinceAlhassanNasamu/kusaal-nllb-600M) | [**Live demo**](https://huggingface.co/spaces/PrinceAlhassanNasamu/kusaal-mt)
+[**Model on Hugging Face**](https://huggingface.co/PrinceAlhassanNasamu/kusaal-nllb-600M) | [**Live demo**](https://huggingface.co/spaces/PrinceAlhassanNasamu/kusaal-mt) | [**Public benchmark**](https://huggingface.co/datasets/PrinceAlhassanNasamu/kusaal-wikipedia-benchmark)
 
 **In this repo:** the [13,659-pair Kusaal Wikipedia parallel corpus](corpus/) (CC BY-SA 4.0), the [mining pipeline scripts](scripts/), and the [full pipeline report](docs/WIKI_CORPUS_PIPELINE_REPORT.md).
 
@@ -41,6 +41,11 @@ numerals now render as digits instead of KJV-style English ("one thousand
 eight hundred seventy-four"), dates are exact, `Kristo biig` translates as
 "a Christian" rather than the calque "son of Christ", and election
 vocabulary no longer drifts into sports commentary.
+
+The benchmark is **public and independently verifiable**:
+[kusaal-wikipedia-benchmark](https://huggingface.co/datasets/PrinceAlhassanNasamu/kusaal-wikipedia-benchmark)
+(1,000 frozen pairs, evaluation protocol and reference results included —
+do not train on it).
 
 **Evaluation notes (read before comparing numbers):**
 - The original card reported BLEU 27.57 / 13.72 under a different decoding
