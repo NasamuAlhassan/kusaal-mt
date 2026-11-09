@@ -49,8 +49,14 @@ do not train on it).
 
 **Evaluation notes (read before comparing numbers):**
 - The original card reported BLEU 27.57 / 13.72 under a different decoding
-  setup and the full 2,081-sentence test; the table above uses one uniform
-  harness for before/after, so only within-table comparisons are valid.
+  setup. A November 2026 reconstruction of the June training kernel found
+  those two numbers were computed on 200 rows of the *validation* split (the
+  same split used to choose the checkpoint), not on the test split. The table
+  above uses one uniform harness for before/after, so only within-table
+  comparisons are valid; do not compare the old and new numbers.
+- "No catastrophic forgetting" means the original-test-set changes (−0.53 to
+  +0.25 BLEU) are within typical sampling noise for 1,000 sentences; no
+  significance test was run.
 - The Wikipedia benchmark was mined with MT assistance, which biases it
   toward sentences MT handles well; absolute scores on it read high. The
   before→after deltas are the meaningful signal.
@@ -63,7 +69,7 @@ a husband") indicates a female referent.
 
 ## Why This Exists
 
-Kusaal is not in Google Translate. It is not in Meta's NLLB-200 (which covers 200 languages). It has no speech recognizer, no text-to-speech system, and very limited NLP resources.
+Kusaal is not in Google Translate and not in Meta's NLLB-200 (which covers 200 languages). Open NLP resources for it remain very limited: speech recognition and text-to-speech exist only as early research models (see the [ASR repository](https://github.com/NasamuAlhassan/kusaal-asr) and the Hugging Face profile), and nearly all parallel text is scripture.
 
 A Kusaal speaker navigating a hospital form, a legal document, or an agricultural advisory in northern Ghana has no open digital translation tool. This project is a step toward changing that.
 
@@ -77,16 +83,16 @@ Fine-tuned from `facebook/nllb-200-distilled-600M`.
 |---|---|
 | **Base model** | facebook/nllb-200-distilled-600M |
 | **New language** | `kus_Latn` (Kusaal, Latin script) |
-| **Embedding seed** | `dag_Latn` (Dagbani — closest Gur relative in NLLB) |
+| **Embedding seed** | Reported as `dag_Latn` (Dagbani) — **unverified**, see note below |
 | **Training data** | ~45,800 human-parallel + ~9,300 back-translation pairs¹ |
 | **Directions** | kus → eng and eng → kus in one model |
 | **Overall BLEU** | **39.2 (kus → eng) · 26.2 (eng → kus)** — average of the two benchmarks below |
 | **BLEU (kus → eng)** | 47.73 wiki / 30.59 original domain |
 | **BLEU (eng → kus)** | 32.26 wiki / 20.21 original domain |
 
-### Why Dagbani as the seed?
+### Why Dagbani as the seed? (intended design — not verified)
 
-Kusaal and Dagbani are both Oti-Volta (Gur) languages. Instead of initialising the new `kus_Latn` embedding randomly, we copy Dagbani's embedding as a warm-start. The model begins with a linguistically grounded prior about what kind of language Kusaal is, which leads to faster convergence and better early translation quality than a cold random start.
+Kusaal and Dagbani are both Oti-Volta (Gur) languages, so the intended design was to warm-start the new `kus_Latn` embedding from Dagbani rather than randomly. **Caveat (November 2026 audit):** NLLB-200 has no `dag_Latn` token, the only surviving training notebook that shows the seeding step prints `initialised from dag_Latn (id=3)` (id 3 is `<unk>`), and the original June training code was not recovered. No ablation against a random-init or other seed was ever run. Treat "Dagbani-seeded" as a design intent, not an established fact, and do not cite it as a finding.
 
 ---
 
@@ -219,6 +225,17 @@ print(translate("How are you?", "eng-kus"))     # -> Kusaal output
 - **Synthetic data noise:** back-translated pairs introduce noise — the model that generated them makes errors, and those errors appear in training. Filtering mitigates but does not eliminate this.
 - **Tokenization:** NLLB's SentencePiece tokenizer was built without Kusaal data. Kusaal words are over-segmented into small fragments, limiting word-level pattern learning.
 - **No formal native speaker evaluation:** BLEU/chrF++ measure n-gram overlap with reference translations. The only real quality test is assessment by fluent Kusaal speakers.
+
+### Data overlap and leakage — read before training or comparing (audit of November 2026)
+
+Measured with exact + near-duplicate matching (character 5-gram MinHash and
+fuzzy ratio ≥ 90 on normalised text); counts are from the audit's leakage reports.
+
+- **`corpus/kusaal_wiki_parallel_corpus.csv` contains the 1,000 benchmark pairs and the 500 validation pairs** (it is gold + silver *before* the split). Do not train on the whole file. The exact frozen split is 12,159 train / 500 validation / 1,000 test (seed 42, `scripts/stage4_make_splits.py`). Dropping rows whose Kusaal sentence matches the [public benchmark](https://huggingface.co/datasets/PrinceAlhassanNasamu/kusaal-wikipedia-benchmark) leaves 12,657 rows (two benchmark sentences occur twice), which still includes the 500 validation rows.
+- **Near-duplicates of benchmark items exist in the training split.** 246–277 of the 12,159 training rows near-match a benchmark item; 114 of them share the exact *English* sentence with a benchmark pair, because the mining pipeline sometimes anchored one English sentence to two different Kusaal sentences. The August models therefore saw many benchmark English sentences. **Absolute benchmark scores are optimistic (especially eng→kus); deltas between systems trained on the same data remain usable.**
+- **Circularity.** `tekyerema-nllb600m-v1` was the verifier used to build the gold tier, so the benchmark favours sentences that model translates well.
+- **Bible overlap with other benchmarks.** About 62% of the 1,000 NSANKU kus→eng verses appear in the June parallel corpus that the original model trained on, so any NSANKU score for these models is contaminated.
+- **The June "original test set"** (1,956 rows) was not seen by `kusaal-nllb-600M`, but it *was* ingested (via the whole in-house corpus) into `tekyerema-nllb600m-v1`'s training data.
 
 ---
 
